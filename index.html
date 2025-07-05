@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success - Bills Coffee Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        popover: {
+                            DEFAULT: "hsl(var(--popover))",
+                            foreground: "hsl(var(--popover-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 0 0% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 0 0% 3.9%;
+            --primary: 0 0% 9%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 0 0% 96.1%;
+            --secondary-foreground: 0 0% 9%;
+            --muted: 0 0% 96.1%;
+            --muted-foreground: 0 0% 45.1%;
+            --accent: 0 0% 96.1%;
+            --accent-foreground: 0 0% 9%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 0 0% 89.8%;
+            --input: 0 0% 89.8%;
+            --ring: 0 0% 3.9%;
+            --radius: 0.5rem;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* Success animation */
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-checkmark {
+            animation: checkmark 0.6s ease-in-out;
+        }
+
+        /* Button hover effects */
+        .btn-primary {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+            transform: translateY(-1px);
+        }
+
+        /* Responsive button heights */
+        @media (min-width: 1024px) {
+            .btn-desktop {
+                height: 2.75rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .btn-mobile {
+                height: 3rem;
+            }
+        }
+
+        /* Touch targets */
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Transaction details styling */
+        .transaction-detail-row {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .transaction-detail-row:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        /* Demo mode styling */
+        .demo-notice {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border: 1px dashed #d1d5db;
+        }
+
+        /* Error state styling */
+        .error-notice {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+        }
+
+        /* Debug info styling */
+        .debug-info {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Loading state for transaction details */
+        .loading-details {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Success state when data is loaded */
+        .data-loaded {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md mx-4">
+            <!-- Success Card -->
+            <div class="bg-white rounded-lg shadow-lg p-6 lg:p-8 text-center">
+                <!-- Success Icon -->
+                <div class="h-12 lg:h-16 w-12 lg:w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 success-checkmark">
+                    <svg class="h-6 lg:h-8 w-6 lg:w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+
+                <!-- Success Title -->
+                <h1 class="text-xl lg:text-2xl font-bold mb-2 text-green-600">Payment Successful!</h1>
+                
+                <!-- Success Message -->
+                <p class="text-gray-600 mb-6 text-sm lg:text-base">
+                    Your payment has been processed successfully. Thank you for your purchase!
+                </p>
+
+                <!-- Transaction Details -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Transaction ID:</span>
+                            <span class="font-mono text-gray-900">#TXN-2024-001</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Amount:</span>
+                            <span class="font-bold text-green-600">$12.45</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Date:</span>
+                            <span class="text-gray-900" id="current-date"></span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Time:</span>
+                            <span class="text-gray-900" id="current-time"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg btn-primary btn-desktop btn-mobile touch-target">
+                        <svg class="inline-block h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Print Receipt
+                    </button>
+                    
+                    <button onclick="window.close()" class="w-full bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-4 rounded-lg btn-secondary btn-desktop btn-mobile touch-target">
+                        Close Window
+                    </button>
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        Bills Coffee Shop<br>
+                        Thank you for your business!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to parse URL parameters
+        function getUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = {};
+            
+            // Get all URL parameters
+            for (const [key, value] of urlParams) {
+                params[key] = value;
+            }
+            
+            return params;
+        }
+
+        // Function to decode JWT token (header and payload only)
+        function decodeJWT(token) {
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    return null;
+                }
+                
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                
+                return { header, payload };
+            } catch (error) {
+                console.error('Error decoding JWT:', error);
+                return null;
+            }
+        }
+
+        // Function to generate a transaction ID from the consent token
+        function generateTransactionId(consent) {
+            if (!consent) return 'TXN-2024-001';
+            
+            // Use the consent ID to generate a unique transaction ID
+            const decoded = decodeJWT(consent);
+            if (decoded && decoded.payload.CONSENT) {
+                return `TXN-${decoded.payload.CONSENT.substring(0, 8).toUpperCase()}`;
+            }
+            
+            // Fallback: use timestamp
+            return `TXN-${Date.now().toString().slice(-6)}`;
+        }
+
+        // Function to update the transaction details
+        function updateTransactionDetails() {
+            const params = getUrlParameters();
+            
+            // Generate transaction ID
+            const transactionId = generateTransactionId(params.consent);
+            
+            // Update transaction ID
+            const transactionIdElement = document.querySelector('.font-mono.text-gray-900');
+            if (transactionIdElement) {
+                transactionIdElement.textContent = `#${transactionId}`;
+            }
+            
+            // Add additional transaction details if parameters exist
+            const transactionDetailsContainer = document.querySelector('.bg-gray-50.rounded-lg.p-4.mb-6 .space-y-2');
+            
+            // Check if we have any meaningful data
+            const hasConsentToken = params.consent && params.consent.trim() !== '';
+            const hasOtherParams = Object.keys(params).length > 0;
+            
+            if (transactionDetailsContainer) {
+                // If no consent token, show a notice
+                if (!hasConsentToken) {
+                    const noticeRow = document.createElement('div');
+                    noticeRow.className = 'flex justify-between text-sm border-t border-gray-200 pt-2 mt-2 demo-notice rounded p-2';
+                    noticeRow.innerHTML = `
+                        <span class="text-gray-500 italic">No transaction data available</span>
+                        <span class="text-gray-400 text-xs">Demo mode</span>
+                    `;
+                    transactionDetailsContainer.appendChild(noticeRow);
+                }
+                
+                // Decode and display consent information if available
+                if (hasConsentToken) {
+                    const decoded = decodeJWT(params.consent);
+                    if (decoded) {
+                        // Add consent ID
+                        if (decoded.payload.CONSENT) {
+                            const consentRow = document.createElement('div');
+                            consentRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                            consentRow.innerHTML = `
+                                <span class="text-gray-600">Consent ID:</span>
+                                <span class="font-mono text-gray-900 text-xs">${decoded.payload.CONSENT.substring(0, 12)}...</span>
+                            `;
+                            transactionDetailsContainer.appendChild(consentRow);
+                        }
+                        
+                        // Add institution
+                        if (decoded.payload.INSTITUTION) {
+                            const institutionRow = document.createElement('div');
+                            institutionRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                            institutionRow.innerHTML = `
+                                <span class="text-gray-600">Institution:</span>
+                                <span class="text-gray-900">${decoded.payload.INSTITUTION}</span>
+                            `;
+                            transactionDetailsContainer.appendChild(institutionRow);
+                        }
+                        
+                        // Add application user ID
+                        if (decoded.payload.APPLICATION_USER_ID) {
+                            const appUserIdRow = document.createElement('div');
+                            appUserIdRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                            appUserIdRow.innerHTML = `
+                                <span class="text-gray-600">App User ID:</span>
+                                <span class="font-mono text-gray-900 text-xs">${decoded.payload.APPLICATION_USER_ID}</span>
+                            `;
+                            transactionDetailsContainer.appendChild(appUserIdRow);
+                        }
+                        
+                        // Add user UUID
+                        if (decoded.payload.USER) {
+                            const userRow = document.createElement('div');
+                            userRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                            userRow.innerHTML = `
+                                <span class="text-gray-600">User UUID:</span>
+                                <span class="font-mono text-gray-900 text-xs">${decoded.payload.USER.substring(0, 12)}...</span>
+                            `;
+                            transactionDetailsContainer.appendChild(userRow);
+                        }
+                    } else {
+                        // Invalid JWT token
+                        const invalidTokenRow = document.createElement('div');
+                        invalidTokenRow.className = 'flex justify-between text-sm border-t border-gray-200 pt-2 mt-2 error-notice rounded p-2';
+                        invalidTokenRow.innerHTML = `
+                            <span class="text-red-500 italic">Invalid consent token</span>
+                            <span class="text-red-400 text-xs">Error</span>
+                        `;
+                        transactionDetailsContainer.appendChild(invalidTokenRow);
+                    }
+                }
+                
+                // Add URL parameters as additional details (only if not already added from JWT)
+                if (params['application-user-id'] && !hasConsentToken) {
+                    const appUserIdRow = document.createElement('div');
+                    appUserIdRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                    appUserIdRow.innerHTML = `
+                        <span class="text-gray-600">Application User ID:</span>
+                        <span class="font-mono text-gray-900 text-xs">${params['application-user-id']}</span>
+                    `;
+                    transactionDetailsContainer.appendChild(appUserIdRow);
+                }
+                
+                if (params['user-uuid'] && !hasConsentToken) {
+                    const userUuidRow = document.createElement('div');
+                    userUuidRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                    userUuidRow.innerHTML = `
+                        <span class="text-gray-600">User UUID:</span>
+                        <span class="font-mono text-gray-900 text-xs">${params['user-uuid'].substring(0, 12)}...</span>
+                    `;
+                    transactionDetailsContainer.appendChild(userUuidRow);
+                }
+                
+                if (params.institution && !hasConsentToken) {
+                    const institutionRow = document.createElement('div');
+                    institutionRow.className = 'flex justify-between text-sm transaction-detail-row p-1 rounded';
+                    institutionRow.innerHTML = `
+                        <span class="text-gray-600">Institution:</span>
+                        <span class="text-gray-900">${params.institution}</span>
+                    `;
+                    transactionDetailsContainer.appendChild(institutionRow);
+                }
+                
+                // Add a separator if we have any additional data
+                if (hasConsentToken || hasOtherParams) {
+                    const separator = document.createElement('div');
+                    separator.className = 'border-t border-gray-200 mt-2 pt-2';
+                    transactionDetailsContainer.appendChild(separator);
+                }
+                
+                // Add debug info in development
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    const debugRow = document.createElement('div');
+                    debugRow.className = 'flex justify-between text-xs text-gray-400 mt-2 debug-info p-2 rounded';
+                    debugRow.innerHTML = `
+                        <span>Debug:</span>
+                        <span>${hasConsentToken ? 'JWT Present' : 'No JWT'} | ${Object.keys(params).length} params</span>
+                    `;
+                    transactionDetailsContainer.appendChild(debugRow);
+                }
+                
+                // Add data-loaded class for animation
+                transactionDetailsContainer.classList.add('data-loaded');
+            }
+        }
+
+        // Set current date and time
+        const now = new Date();
+        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+        
+        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', timeOptions);
+
+        // Update transaction details with URL parameters
+        updateTransactionDetails();
+
+        // Add some interactive feedback
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Auto-close after 30 seconds (optional)
+        setTimeout(() => {
+            if (confirm('Would you like to close this window?')) {
+                window.close();
+            }
+        }, 30000);
+
+        // Log URL parameters for debugging
+        console.log('URL Parameters:', getUrlParameters());
+    </script>
+</body>
+</html> 
