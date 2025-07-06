@@ -327,7 +327,7 @@
                         Print Receipt
                     </button>
                     
-                    <button onclick="window.close()" class="w-full font-medium py-3 px-6 rounded-xl btn-secondary btn-desktop btn-mobile touch-target flex items-center justify-center">
+                    <button onclick="closeWindow()" class="w-full font-medium py-3 px-6 rounded-xl btn-secondary btn-desktop btn-mobile touch-target flex items-center justify-center">
                         <svg class="inline-block h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -347,6 +347,35 @@
     </div>
 
     <script>
+        // Function to close window with iOS Safari support
+        function closeWindow() {
+            // Try to close the window
+            try {
+                window.close();
+            } catch (e) {
+                console.log('window.close() failed:', e);
+            }
+            
+            // Check if the window is still open after a short delay
+            setTimeout(() => {
+                // If window is still open, try alternative methods
+                if (!window.closed) {
+                    // For iOS Safari, show a message to manually close
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        alert('Please close this window manually or use the back button in your browser.');
+                    } else {
+                        // For other browsers, try to go back in history
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            // If no history, try to navigate to a blank page
+                            window.location.href = 'about:blank';
+                        }
+                    }
+                }
+            }, 100);
+        }
+
         // Function to print receipt
         function printReceipt() {
             // Hide buttons and footer for print
@@ -613,7 +642,7 @@
         // Auto-close after 30 seconds (optional)
         setTimeout(() => {
             if (confirm('Would you like to close this window?')) {
-                window.close();
+                closeWindow();
             }
         }, 30000);
 
